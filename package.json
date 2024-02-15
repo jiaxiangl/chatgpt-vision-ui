@@ -17,6 +17,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "proxy": "https://ai-gateway.zende.sk",
   "eslintConfig": {
     "extends": [
       "react-app",
