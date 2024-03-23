@@ -1,8 +1,22 @@
 import React, { useState } from "react";
+import { ThemeProvider } from "@zendeskgarden/react-theming";
+import {
+  Modal,
+  Body,
+  Footer,
+  FooterItem,
+  Close,
+} from "@zendeskgarden/react-modals";
+import { Button, IconButton } from "@zendeskgarden/react-buttons";
+import { Field, Label, Input } from "@zendeskgarden/react-forms";
+import ChatGPTResponse from './ChatGPTResponse';
+import { ReactComponent as SettingsIcon } from "@zendeskgarden/svg-icons/src/16/gear-stroke.svg";
+import { ReactComponent as UploadIcon } from "@zendeskgarden/svg-icons/src/16/upload-stroke.svg";
 import "./App.css";
 
 function App() {
   const [imageBase64Src, setImageBase64Src] = useState("");
+  const [prompt, setPrompt] = useState("");
   const [domain, setDomain] = useState(
     localStorage.getItem("chatGPTDomain") || ""
   );
@@ -10,6 +24,7 @@ function App() {
     localStorage.getItem("chatGPTApiKey") || ""
   );
   const [response, setResponse] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fileToBase64 = (file, callback) => {
     const reader = new FileReader();
@@ -18,29 +33,7 @@ function App() {
     reader.onerror = (error) => console.log("Error: ", error);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) {
-      return;
-    }
-    fileToBase64(file, (result) => {
-      setImageBase64Src(result);
-    });
-  };
-
-  const handleDomainChange = (e) => {
-    const value = e.target.value;
-    setDomain(value);
-    localStorage.setItem("chatGPTDomain", value);
-  };
-
-  const handleApiKeyChange = (e) => {
-    const value = e.target.value;
-    setApiKey(value);
-    localStorage.setItem("chatGPTApiKey", value);
-  };
-
-  const fetchChatGPTCompletion = async () => {
+  const fetchChatGPTCompletion = async (prompt) => {
     if (!domain || !apiKey) {
       setResponse("Error: ChatGPT domain or API access key not provided.");
       return;
@@ -54,7 +47,7 @@ function App() {
           content: [
             {
               type: "text",
-              text: "Convert this image into a technical design document",
+              text: prompt + " and return with markdown format",
             },
             {
               type: "image_url",
@@ -65,7 +58,7 @@ function App() {
           ],
         },
       ],
-      max_tokens: 300,
+      max_tokens: 900,
     };
 
     try {
@@ -94,55 +87,96 @@ function App() {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+    fileToBase64(file, (result) => {
+      setImageBase64Src(result);
+    });
+  };
+
+  const handleDomainChange = (e) => {
+    const value = e.target.value;
+    setDomain(value);
+    localStorage.setItem("chatGPTDomain", value);
+  };
+
+  const handleApiKeyChange = (e) => {
+    const value = e.target.value;
+    setApiKey(value);
+    localStorage.setItem("chatGPTApiKey", value);
+  };
+
+  const handlePromptChange = (e) => {
+    const value = e.target.value;
+    setPrompt(value);
+  };
+
+  // Fetch ChatGPT Completion (same as your original function)
+  // ...
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>ChatGPT API Image Analysis</h1>
-
-        <div>
-          <label htmlFor="domain">ChatGPT Domain:</label>
-          <input
-            id="domain"
-            type="text"
-            value={domain}
-            onChange={handleDomainChange}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="apiKey">API Access Key:</label>
-          <input
-            id="apiKey"
-            type="text"
-            value={apiKey}
-            onChange={handleApiKeyChange}
-            style={{ marginBottom: "20px" }}
-          />
-        </div>
-
-        <input type="file" onChange={handleFileChange} />
-        {Boolean(imageBase64Src) && (
-            <div>
-              <h2>Image Preview</h2>
-              <img
-                src={imageBase64Src}
-                alt="Uploaded preview"
-                style={{ width: '100%', maxWidth: '400px', maxHeight: '500px' }}
-              />
-            </div>
+    <ThemeProvider>
+      <div className="App">
+        <header className="App-header">
+          <IconButton onClick={openModal} aria-label="settings">
+            <SettingsIcon />
+          </IconButton>
+          {isModalOpen && (
+            <Modal isOpen={isModalOpen} onClose={closeModal}>
+              <Body>
+                <Field>
+                  <Label>ChatGPT Domain:</Label>
+                  <Input value={domain} onChange={handleDomainChange} />
+                </Field>
+                <Field>
+                  <Label>API Access Key:</Label>
+                  <Input value={apiKey} onChange={handleApiKeyChange} />
+                </Field>
+              </Body>
+              <Footer>
+                <FooterItem>
+                  <Button onClick={closeModal} isPrimary>
+                    Save
+                  </Button>
+                </FooterItem>
+              </Footer>
+              <Close aria-label="Close modal" />
+            </Modal>
           )}
-        <button onClick={fetchChatGPTCompletion} disabled={!imageBase64Src}>
-          Analyze Image
-        </button>
-
-        {response && (
-          <div>
-            <h2>API Response</h2>
-            <textarea style={{ textAlign: "left" }}>{response}</textarea>
+          <div className="upload-and-prompt flex justify-center items-center gap-2 p-4 fixed bottom-0 left-0 right-0">
+            <label className="cursor-pointer">
+              <div className="flex items-center px-2 py-1 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                <UploadIcon className="w-5 h-5" />
+              </div>
+              <input
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </label>
+            <Input
+              placeholder="Write your prompt here"
+              onChange={handlePromptChange}
+            />
+            <Button
+              onClick={() => fetchChatGPTCompletion(prompt)}
+              disabled={!imageBase64Src}
+            >
+              Analyze Image
+            </Button>
           </div>
-        )}
-      </header>
-    </div>
+          <div className="api-response">
+            {response && <ChatGPTResponse markdownText={response} />}
+          </div>
+        </header>
+      </div>
+    </ThemeProvider>
   );
 }
 

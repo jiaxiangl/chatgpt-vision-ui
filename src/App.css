@@ -1,16 +1,6 @@
 .App {
+  font-family: sans-serif;
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
 }
 
 .App-header {
@@ -20,19 +10,50 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.upload-and-prompt {
+  position: fixed;
+  bottom: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.api-response {
+  width: 80%; /* Adjust to your preference */
+  height: 90%;
+  overflow-y: scroll;
+}
+
+/* Styles for the file input button */
+.upload-and-prompt input[type='file'] {
+  display: none; /* Hide the default file input */
+}
+
+/* Additional styles for buttons and inputs around upload-and-prompt */
+.upload-and-prompt .garden-button,
+.upload-and-prompt .garden-input {
+  margin: 0 4px;
+}
+
+/* Adjust the height of the input field to align with buttons */
+.upload-and-prompt .garden-input__input {
+  height: 32px; /* Match your button height */
+}
+
+/* If your application will be used on mobile devices */
+@media (max-width: 768px) {
+  .upload-and-prompt {
+    flex-direction: column;
+    align-items: center;
   }
-  to {
-    transform: rotate(360deg);
+  
+  /* Adjust the margin for mobile devices */
+  .upload-and-prompt .garden-button,
+  .upload-and-prompt .garden-input {
+    margin: 4px 0;
   }
 }
